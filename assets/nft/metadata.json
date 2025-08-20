@@ -1,0 +1,15 @@
+{
+  "name": "BestOfDoctors Demo NFT",
+  "symbol": "BOD",
+  "description": "Devnet üzerinde deneme amaçlı basılmış NFT.",
+  "image": "https://raw.githubusercontent.com/bestofdoctors/new/main/assets/nft/image.png",
+  "attributes": [
+    { "trait_type": "Edition", "value": "Genesis" }
+  ],
+  "properties": {
+    "files": [
+      { "uri": "https://raw.githubusercontent.com/bestofdoctors/new/main/assets/nft/image.png", "type": "image/png" }
+    ],
+    "category": "image"
+  }
+}
