@@ -1,42 +1,28 @@
-# Build stage
+# ===== Builder =====
 FROM node:18-alpine AS builder
-
 WORKDIR /app
-
-# Copy package files
 COPY package.json package-lock.json* ./
-
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy source code
+RUN npm ci
 COPY . .
-
-# Generate Prisma client
 RUN npx prisma generate
-
-# Build the application
 RUN npm run build
 
-# Production stage
+# ===== Production =====
 FROM node:18-alpine AS production
-
 WORKDIR /app
+# Prisma/Node runtime bağımlılıkları
+RUN apk add --no-cache openssl libc6-compat
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
 
-# Copy built application and dependencies
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Build çıktısı ve Prisma dosyaları
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-USER nextjs
+# İzinler
+RUN mkdir -p /app/node_modules/@prisma/engines && chown -R node:node /app
 
-EXPOSE 3000
-
-ENV NODE_ENV=production
-
+USER node
 CMD ["node", "dist/server.js"]
