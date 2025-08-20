@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  mints    Mint[]
+  listings Listing[]
+
+  @@map("users")
+}
+
+model Mint {
+  id        String   @id @default(cuid())
+  tokenId   String   @unique
+  metadata  Json?
+  txHash    String?
+  status    MintStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mints")
+}
+
+model Listing {
+  id          String      @id @default(cuid())
+  tokenId     String
+  price       String      // Store as string to handle large numbers
+  currency    String      @default("ETH")
+  status      ListingStatus @default(ACTIVE)
+  expiresAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("listings")
+}
+
+enum MintStatus {
+  PENDING
+  MINTING
+  MINTED
+  FAILED
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+  EXPIRED
+}
