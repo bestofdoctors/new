@@ -5,6 +5,9 @@ import { ApiResponse, MintRequest, ListingRequest } from '@/types/api';
 const mintSchema = z.object({
   tokenId: z.string().min(1),
   metadata: z.record(z.unknown()).optional(),
+  collectionId: z.string().min(1).optional(),
+  collectionMint: z.string().min(1).optional(),
+  authorityPubkey: z.string().min(1).optional(),
 });
 
 const listingSchema = z.object({
@@ -12,6 +15,7 @@ const listingSchema = z.object({
   price: z.string().min(1),
   currency: z.string().default('ETH'),
   expiresAt: z.string().datetime().optional(),
+  collectionId: z.string().min(1).optional(),
 });
 
 export default async function nftRoutes(
@@ -30,6 +34,9 @@ export default async function nftRoutes(
         properties: {
           tokenId: { type: 'string', minLength: 1 },
           metadata: { type: 'object' },
+          collectionId: { type: 'string' },
+          collectionMint: { type: 'string' },
+          authorityPubkey: { type: 'string' },
         },
       },
     },
@@ -77,6 +84,7 @@ export default async function nftRoutes(
           price: { type: 'string', minLength: 1 },
           currency: { type: 'string' },
           expiresAt: { type: 'string', format: 'date-time' },
+          collectionId: { type: 'string' },
         },
       },
     },

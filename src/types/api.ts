@@ -8,6 +8,9 @@ export interface ApiResponse<T = unknown> {
 export interface MintRequest {
   tokenId: string;
   metadata?: Record<string, unknown>;
+  collectionId?: string;
+  collectionMint?: string;
+  authorityPubkey?: string;
 }
 
 export interface ListingRequest {
@@ -15,4 +18,5 @@ export interface ListingRequest {
   price: string;
   currency?: string;
   expiresAt?: string;
+  collectionId?: string;
 }
