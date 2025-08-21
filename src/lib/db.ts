@@ -2,14 +2,17 @@ import { PrismaClient } from '@prisma/client';
 import { config } from '../config/env';
 
 declare global {
+  // eslint-disable-next-line no-var
   var __prisma: PrismaClient | undefined;
 }
 
+// eslint-disable-next-line no-undef
 export const prisma = globalThis.__prisma ?? new PrismaClient({
   log: config.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
 if (config.NODE_ENV !== 'production') {
+  // eslint-disable-next-line no-undef
   globalThis.__prisma = prisma;
 }
 

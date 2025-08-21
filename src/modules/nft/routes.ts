@@ -2,16 +2,17 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { z } from 'zod';
 import { ApiResponse, MintRequest, ListingRequest } from '@/types/api';
 import { prisma } from '../../lib/db';
+import { handleRouteError } from '../../lib/errors';
 
 const mintSchema = z.object({
-  tokenId: z.string().min(1),
+  tokenId: z.string().min(1, 'Token ID is required'),
   metadata: z.record(z.unknown()).optional(),
 });
 
 const listingSchema = z.object({
-  tokenId: z.string().min(1),
-  price: z.string().min(1),
-  currency: z.string().default('ETH'),
+  tokenId: z.string().min(1, 'Token ID is required'), 
+  price: z.string().min(1, 'Price is required').regex(/^\d+(\.\d+)?$/, 'Price must be a valid number'),
+  currency: z.string().default('ETH').optional(),
   expiresAt: z.string().datetime().optional(),
 });
 
@@ -19,22 +20,11 @@ export default async function nftRoutes(
   fastify: FastifyInstance,
   options: FastifyPluginOptions
 ) {
-  // POST /nft/mint - Stub implementation
+  // POST /nft/mint - Database-integrated implementation
   fastify.post<{
     Body: MintRequest;
     Reply: ApiResponse<{ mintId: string; status: string }>;
-  }>('/nft/mint', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['tokenId'],
-        properties: {
-          tokenId: { type: 'string', minLength: 1 },
-          metadata: { type: 'object' },
-        },
-      },
-    },
-  }, async (request, reply) => {
+  }>('/nft/mint', async (request, reply) => {
     try {
       const body = mintSchema.parse(request.body);
       
@@ -69,32 +59,15 @@ export default async function nftRoutes(
         message: 'NFT mint initiated successfully',
       };
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
-        success: false,
-        error: error instanceof Error ? error.message : 'Invalid request data',
-      });
+      handleRouteError(error, request, reply);
     }
   });
 
-  // POST /nft/list - Stub implementation
+  // POST /nft/list - Database-integrated implementation
   fastify.post<{
     Body: ListingRequest;
     Reply: ApiResponse<{ listingId: string; status: string }>;
-  }>('/nft/list', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['tokenId', 'price'],
-        properties: {
-          tokenId: { type: 'string', minLength: 1 },
-          price: { type: 'string', minLength: 1 },
-          currency: { type: 'string' },
-          expiresAt: { type: 'string', format: 'date-time' },
-        },
-      },
-    },
-  }, async (request, reply) => {
+  }>('/nft/list', async (request, reply) => {
     try {
       const body = listingSchema.parse(request.body);
       
@@ -131,11 +104,78 @@ export default async function nftRoutes(
         message: 'NFT listed successfully',
       };
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
-        success: false,
-        error: error instanceof Error ? error.message : 'Invalid request data',
+      handleRouteError(error, request, reply);
+    }
+  });
+
+  // GET /nft/mint/:id - Get mint status
+  fastify.get<{
+    Params: { id: string };
+    Reply: ApiResponse<{ mintId: string; tokenId: string; status: string; createdAt: string }>;
+  }>('/nft/mint/:id', async (request, reply) => {
+    try {
+      const { id } = request.params;
+      
+      const mint = await prisma.mint.findUnique({
+        where: { id },
+        include: { user: true },
       });
+
+      if (!mint) {
+        return reply.code(404).send({
+          success: false,
+          error: 'Mint not found',
+        });
+      }
+
+      return {
+        success: true,
+        data: {
+          mintId: mint.id,
+          tokenId: mint.tokenId,
+          status: mint.status.toLowerCase(),
+          createdAt: mint.createdAt.toISOString(),
+        },
+      };
+    } catch (error) {
+      handleRouteError(error, request, reply);
+    }
+  });
+
+  // GET /nft/listing/:id - Get listing details
+  fastify.get<{
+    Params: { id: string };
+    Reply: ApiResponse<{ listingId: string; tokenId: string; price: string; currency: string; status: string; expiresAt?: string; createdAt: string }>;
+  }>('/nft/listing/:id', async (request, reply) => {
+    try {
+      const { id } = request.params;
+      
+      const listing = await prisma.listing.findUnique({
+        where: { id },
+        include: { user: true },
+      });
+
+      if (!listing) {
+        return reply.code(404).send({
+          success: false,
+          error: 'Listing not found',
+        });
+      }
+
+      return {
+        success: true,
+        data: {
+          listingId: listing.id,
+          tokenId: listing.tokenId,
+          price: listing.price,
+          currency: listing.currency,
+          status: listing.status.toLowerCase(),
+          expiresAt: listing.expiresAt?.toISOString(),
+          createdAt: listing.createdAt.toISOString(),
+        },
+      };
+    } catch (error) {
+      handleRouteError(error, request, reply);
     }
   });
 }
