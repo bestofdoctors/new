@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { z } from 'zod';
 import { ApiResponse, MintRequest, ListingRequest } from '@/types/api';
+import { prisma } from '../../lib/db';
 
 const mintSchema = z.object({
   tokenId: z.string().min(1),
@@ -37,20 +38,33 @@ export default async function nftRoutes(
     try {
       const body = mintSchema.parse(request.body);
       
-      // Stub implementation - would integrate with actual NFT minting logic
-      const mintId = `mint_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // TODO: Implement actual NFT minting logic
-      // - Validate token metadata
-      // - Call smart contract mint function
-      // - Store mint record in database
-      // - Handle transaction status updates
-      
+      // Create mint record in database
+      const mint = await prisma.mint.create({
+        data: {
+          tokenId: body.tokenId,
+          metadata: body.metadata || {},
+          status: 'PENDING',
+          // For now, create a dummy user - in real app this would come from auth
+          user: {
+            connectOrCreate: {
+              where: { email: 'anonymous@example.com' },
+              create: {
+                email: 'anonymous@example.com',
+                username: `user_${Date.now()}`,
+              },
+            },
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
       return {
         success: true,
         data: {
-          mintId,
-          status: 'pending',
+          mintId: mint.id,
+          status: mint.status.toLowerCase(),
         },
         message: 'NFT mint initiated successfully',
       };
@@ -84,20 +98,35 @@ export default async function nftRoutes(
     try {
       const body = listingSchema.parse(request.body);
       
-      // Stub implementation - would integrate with actual NFT listing logic
-      const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // TODO: Implement actual NFT listing logic
-      // - Validate token ownership
-      // - Create marketplace listing
-      // - Store listing record in database
-      // - Set up price monitoring and expiration
+      // Create listing record in database
+      const listing = await prisma.listing.create({
+        data: {
+          tokenId: body.tokenId,
+          price: body.price,
+          currency: body.currency || 'ETH',
+          expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+          status: 'ACTIVE',
+          // For now, create a dummy user - in real app this would come from auth
+          user: {
+            connectOrCreate: {
+              where: { email: 'anonymous@example.com' },
+              create: {
+                email: 'anonymous@example.com',
+                username: `user_${Date.now()}`,
+              },
+            },
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
       
       return {
         success: true,
         data: {
-          listingId,
-          status: 'active',
+          listingId: listing.id,
+          status: listing.status.toLowerCase(),
         },
         message: 'NFT listed successfully',
       };

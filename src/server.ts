@@ -1,5 +1,6 @@
 import { buildApp } from './app';
 import { config } from './config/env';
+import { disconnectDB } from './lib/db';
 
 async function start() {
   try {
@@ -17,6 +18,7 @@ async function start() {
     const gracefulShutdown = async (signal: string) => {
       app.log.info(`Received ${signal}, shutting down gracefully`);
       await app.close();
+      await disconnectDB();
       process.exit(0);
     };
 

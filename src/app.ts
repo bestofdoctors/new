@@ -2,6 +2,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
 import { config } from './config/env';
+import { connectDB } from './lib/db';
 
 // Import route modules
 import healthRoutes from './modules/health/routes';
@@ -14,6 +15,9 @@ export async function buildApp(): Promise<FastifyInstance> {
       level: config.NODE_ENV === 'production' ? 'info' : 'debug',
     },
   });
+
+  // Connect to database
+  await connectDB();
 
   // Register plugins
   await app.register(helmet, {
