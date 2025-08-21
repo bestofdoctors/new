@@ -36,6 +36,8 @@ model Mint {
   // Relations
   userId   String
   user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id])
 
   @@map("mints")
 }
@@ -53,8 +55,24 @@ model Listing {
   // Relations
   userId      String
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id])
 
   @@map("listings")
+}
+
+model Collection {
+  id              String   @id @default(cuid())
+  collectionMint  String   @unique
+  authorityPubkey String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  mints    Mint[]
+  listings Listing[]
+
+  @@map("collections")
 }
 
 enum MintStatus {
