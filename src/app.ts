@@ -6,6 +6,7 @@ import { config } from './config/env';
 // Import route modules
 import healthRoutes from './modules/health/routes';
 import nftRoutes from './modules/nft/routes';
+import collectionRoutes from './modules/collections/routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -28,6 +29,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Register routes
   await app.register(healthRoutes);
   await app.register(nftRoutes);
+  await app.register(collectionRoutes);
 
   // Global error handler
   app.setErrorHandler((error, request, reply) => {
