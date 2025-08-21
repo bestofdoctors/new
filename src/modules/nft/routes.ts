@@ -9,7 +9,13 @@ const mintSchema = z.object({
 
 const listingSchema = z.object({
   tokenId: z.string().min(1),
-  price: z.string().min(1),
+  price: z.preprocess((val) => {
+    try {
+      return BigInt(val as string);
+    } catch {
+      return undefined;
+    }
+  }, z.bigint()),
   currency: z.string().default('ETH'),
   expiresAt: z.string().datetime().optional(),
 });
@@ -66,7 +72,7 @@ export default async function nftRoutes(
   // POST /nft/list - Stub implementation
   fastify.post<{
     Body: ListingRequest;
-    Reply: ApiResponse<{ listingId: string; status: string }>;
+    Reply: ApiResponse<{ listingId: string; status: string; price: bigint }>;
   }>('/nft/list', {
     schema: {
       body: {
@@ -98,6 +104,7 @@ export default async function nftRoutes(
         data: {
           listingId,
           status: 'active',
+          price: body.price,
         },
         message: 'NFT listed successfully',
       };

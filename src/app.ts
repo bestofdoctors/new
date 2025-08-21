@@ -29,6 +29,26 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(healthRoutes);
   await app.register(nftRoutes);
 
+  // Serialize BigInt values to strings in responses
+  app.addHook('preSerialization', (request, reply, payload, done) => {
+    const convert = (value: unknown): unknown => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      if (Array.isArray(value)) {
+        return value.map(convert);
+      }
+      if (value && typeof value === 'object') {
+        return Object.fromEntries(
+          Object.entries(value).map(([key, val]) => [key, convert(val)])
+        );
+      }
+      return value;
+    };
+
+    done(null, convert(payload));
+  });
+
   // Global error handler
   app.setErrorHandler((error, request, reply) => {
     app.log.error(error);

@@ -65,7 +65,7 @@ describe('NFT Routes', () => {
     it('should accept valid listing request', async () => {
       const listingData = {
         tokenId: 'test-token-123',
-        price: '1.5',
+        price: '1500000000000000000',
         currency: 'ETH',
       };
 
@@ -84,6 +84,7 @@ describe('NFT Routes', () => {
       expect(body.success).toBe(true);
       expect(body.data.listingId).toBeDefined();
       expect(body.data.status).toBe('active');
+      expect(body.data.price).toBe('1500000000000000000');
     });
 
     it('should reject invalid listing request', async () => {
