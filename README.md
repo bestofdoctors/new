@@ -38,15 +38,16 @@ Response: {
 POST /nft/list  
 Body: {
   "tokenId": "string",
-  "price": "string",
+  "price": "string", // BigInt as string in smallest currency unit
   "currency": "ETH", // optional
   "expiresAt": "ISO datetime" // optional
 }
 Response: {
   "success": true,
   "data": {
-    "listingId": "string", 
-    "status": "active"
+    "listingId": "string",
+    "status": "active",
+    "price": "string"
   }
 }
 ```

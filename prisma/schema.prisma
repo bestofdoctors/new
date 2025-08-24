@@ -45,7 +45,7 @@ model Mint {
 model Listing {
   id          String      @id @default(cuid())
   tokenId     String
-  price       String      // Store as string to handle large numbers
+  price       BigInt      // Stored as BigInt to handle large values
   currency    String      @default("ETH")
   status      ListingStatus @default(ACTIVE)
   expiresAt   DateTime?

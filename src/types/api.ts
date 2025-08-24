@@ -15,7 +15,7 @@ export interface MintRequest {
 
 export interface ListingRequest {
   tokenId: string;
-  price: string;
+  price: bigint;
   currency?: string;
   expiresAt?: string;
   collectionId?: string;

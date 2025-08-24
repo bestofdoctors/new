@@ -69,5 +69,5 @@ curl -X POST http://localhost:3000/nft/mint \
 # List NFT (stub)  
 curl -X POST http://localhost:3000/nft/list \
   -H "Content-Type: application/json" \
-  -d '{"tokenId": "nft-001", "price": "1.5", "currency": "ETH"}'
+  -d '{"tokenId": "nft-001", "price": "1500000000000000000", "currency": "ETH"}'
 ```
